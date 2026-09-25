@@ -23,7 +23,8 @@ for(var k in defs){
  var names=s.subcategories[k].map(function(x){return x[0]});
  defs[k].subs.forEach(function(n){if(names.indexOf(n)<0)s.subcategories[k].push([n,0])});
 }
-var money=function(n){return 'NTfunction persist(){localStorage.setItem('lfp',JSON.stringify(s))}
+var money=function(n){return 'NT\u0024'+Math.round(Number(n)||0).toLocaleString('zh-TW')};
+function persist(){localStorage.setItem('lfp',JSON.stringify(s))}
 function total(k){return (s.subcategories[k]||[]).reduce(function(a,x){return a+(Number(x[1])||0)},0)}
 function updateFutureMe(){
  var set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=money(v)};
