@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "v0.2-behavioral-ux"]
   workflow_dispatch:
 
 permissions:
@@ -21,14 +21,32 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout production
         uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+
+      - name: Checkout v0.2 preview
+        uses: actions/checkout@v4
+        with:
+          ref: v0.2-behavioral-ux
+          path: preview-src
+
+      - name: Build static site
+        run: |
+          mkdir -p public/preview
+          cp prod/index.html public/index.html
+          cp preview-src/index.html public/preview/index.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: public
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
