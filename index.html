@@ -5,7 +5,27 @@ const money=n=>'NT$'+Math.round(n).toLocaleString('zh-TW');
 const items=[['mortgage','房貸／住房','輸入每月住房／房貸實際金額'],['education','子女教育／課程','輸入教育與課程實際金額'],['transport','交通／校車','輸入交通實際金額'],['loans','其他貸款','請輸入真實月付'],['living','生活費','餐飲、日用品、水電'],['insurance','保險／醫療','請輸入平均月額'],['travel','年度旅遊基金','依你的年度旅遊目標自動規劃'],['emergency','緊急預備金','未達 4–6 個月前優先'],['invest','非 AMD 長期投資','用來降低集中風險'],['other','彈性／大型支出','器材、課程、臨時支出']];
 const plan=[['必要生活＋固定支出','45–55%','先確保住房、教育、交通、基本生活'],['緊急預備金','5–10%','先建立 4 個月，再往 6 個月'],['年度旅遊基金','8–10%','設定年度目標後換算每月投入'],['AMD ESPP','10–12%','依現金流安全度決定，不必直接拉滿'],['非 AMD 長期投資','10–15%','降低薪資、RSU、ESPP 同公司集中'],['彈性支出','剩餘','只有在前面目標完成後使用']];
 const qs=['本月沒有新增循環信用／高利消費債','旅遊基金完成本月固定投入','緊急預備金完成本月投入','ESPP 比例符合目前現金流能力','完成一次月底財務 Review'];
-function save(){localStorage.setItem('lfp',JSON.stringify(s));render()}
+function persist(){localStorage.setItem('lfp',JSON.stringify(s))}
+function save(){persist();render()}
+function updateLive(){
+ const espp=s.income*s.esppPct/100;
+ const spent=items.reduce((a,[k])=>a+(+s[k]||0),0)+espp;
+ incomeK.textContent=money(s.income);spentK.textContent=money(spent);leftK.textContent=money(s.income-spent);
+ const ratio=s.income>0?Math.max(0,Math.min(100,(s.income-spent)/s.income*100)):0;
+ safeBar.style.width=ratio+'%';safeTxt.textContent='月收入扣除規劃後保留 '+ratio.toFixed(1)+'% 現金彈性';
+ const essentialKeys=['mortgage','education','transport','loans','living','insurance','other'];
+ const essential=essentialKeys.reduce((a,k)=>a+(+s[k]||0),0);
+ const available=Math.max(0,s.income-essential-(s.income*s.esppPct/100));
+ const allocTotal=(+s.allocTravel||0)+(+s.allocEmergency||0)+(+s.allocInvest||0)+(+s.allocFree||0);
+ if(document.getElementById('allocAvailable')){
+  allocAvailable.textContent=money(available);allocLeft.textContent=money(available-allocTotal);
+  allocLeft.className='k '+(available-allocTotal<0?'':'good');
+  allocImpact.innerHTML='照目前配置：旅行每年 +<b>'+money(s.allocTravel*12)+'</b>；安全網 +<b>'+money(s.allocEmergency*12)+'</b>；長期投資本金 +<b>'+money(s.allocInvest*12)+'</b>。'+(available-allocTotal<0?' <b>目前超出可分配額，請降低配置。</b>':'');
+ }
+ if(document.getElementById('futureTravel')){futureTravel.textContent=money(s.allocTravel*12);futureEmergency.textContent=money(s.allocEmergency*12);futureInvest.textContent=money(s.allocInvest*12);futureFree.textContent=money(s.allocFree*12);}
+ if(document.getElementById('esppCalc'))esppCalc.textContent=money(espp)+' / 月';
+ return available;
+}
 function render(){
  incomeK.textContent=money(s.income);
  const espp=s.income*s.esppPct/100;
@@ -30,12 +50,20 @@ function render(){
  }
  if(document.getElementById('futureTravel')){futureTravel.textContent=money(s.allocTravel*12);futureEmergency.textContent=money(s.allocEmergency*12);futureInvest.textContent=money(s.allocInvest*12);futureFree.textContent=money(s.allocFree*12);}
  const xp=s.quests.filter(Boolean).length*20;document.getElementById('xp').textContent=xp;level.textContent=xp>=100?'財務自動化':xp>=80?'資產成長':xp>=40?'建立安全網':'建立基地';document.getElementById('xp').textContent=xp;
- document.querySelectorAll('[data-k]').forEach(e=>e.oninput=()=>{s[e.dataset.k]=+e.value;save()});
+ document.querySelectorAll('[data-k]').forEach(e=>e.oninput=()=>{s[e.dataset.k]=+e.value;persist();updateLive()});
  document.querySelectorAll('[data-q]').forEach(e=>e.onchange=()=>{s.quests[+e.dataset.q]=e.checked;save()});
- ['allocTravel','allocEmergency','allocInvest','allocFree'].forEach(id=>{const e=document.getElementById(id);if(e)e.oninput=()=>{s[id]=+e.value;save()}});
+ ['allocTravel','allocEmergency','allocInvest','allocFree'].forEach(id=>{const e=document.getElementById(id);if(e)e.oninput=()=>{s[id]=+e.value;persist();updateLive()}});
  const aa=document.getElementById('autoAlloc');if(aa)aa.onclick=()=>{const base=Math.max(0,available);s.allocTravel=Math.round(base*.25);s.allocEmergency=Math.round(base*.30);s.allocInvest=Math.round(base*.30);s.allocFree=base-s.allocTravel-s.allocEmergency-s.allocInvest;save()};
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById(b.dataset.p).classList.add('on')});
-['travelGoal','travelNow','travelMonthly','esppPct'].forEach(id=>document.getElementById(id).oninput=e=>{s[id]=+e.target.value;save()});
+['travelGoal','travelNow','travelMonthly','esppPct'].forEach(id=>document.getElementById(id).oninput=e=>{
+ s[id]=+e.target.value;persist();
+ if(id==='esppPct') updateLive();
+ if(id.startsWith('travel')){
+  const remain=Math.max(0,s.travelGoal-s.travelNow),months=Math.max(1,Math.ceil(remain/Math.max(1,s.travelMonthly)));
+  travelNeed.textContent='照目前速度約 '+months+' 個月達標';
+  travelBar.style.width=(s.travelGoal>0?Math.min(100,s.travelNow/s.travelGoal*100):0)+'%';
+ }
+});
 document.getElementById('nextBtn').onclick=()=>{document.querySelector('[data-p="budget"]').click();setTimeout(()=>document.querySelector('[data-k="income"]')?.focus(),50)};render();
 </script></body></html>
