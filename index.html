@@ -21,9 +21,9 @@ function total(k){return (s.subcategories[k]||[]).reduce((a,x)=>a+(Number(x[1])|
 function calc(){
  const espp=(Number(s.income)||0)*(Number(s.esppPct)||0)/100;
  const spent=Object.keys(defs).reduce((a,k)=>a+total(k),0)+espp;
- incomeK.textContent=money(s.income);spentK.textContent=money(spent);leftK.textContent=money((Number(s.income)||0)-spent);
- const r=s.income?Math.max(0,Math.min(100,((s.income-spent)/s.income)*100)):0;safeBar.style.width=r+'%';safeTxt.textContent='月收入扣除規劃後保留 '+r.toFixed(1)+'% 現金彈性';
- esppCalc.textContent=money(espp)+' / 月';
+ document.getElementById('incomeK').textContent=money(s.income);document.getElementById('spentK').textContent=money(spent);document.getElementById('leftK').textContent=money((Number(s.income)||0)-spent);
+ const r=s.income?Math.max(0,Math.min(100,((s.income-spent)/s.income)*100)):0;document.getElementById('safeBar').style.width=r+'%';document.getElementById('safeTxt').textContent='月收入扣除規劃後保留 '+r.toFixed(1)+'% 現金彈性';
+ const ec=document.getElementById('esppCalc');if(ec)ec.textContent=money(espp)+' / 月';
 }
 function bindBudget(){
  document.querySelectorAll('.budget-toggle').forEach(b=>b.onclick=()=>{const g=b.closest('.budget-group');g.classList.toggle('open');b.textContent=g.classList.contains('open')?'−':'＋'});
@@ -33,20 +33,21 @@ function bindBudget(){
  document.querySelectorAll('.add').forEach(b=>b.onclick=()=>{const k=b.dataset.k;s.subcategories[k].push(['新項目',0]);persist();renderBudget();const g=document.querySelector('[data-group="'+k+'"]');g?.classList.add('open')});
 }
 function renderBudget(){
- budgetRows.innerHTML='<div class="row"><b>可分配月收入</b><input id="incomeInput" type="number" inputmode="numeric" value="'+(s.income||0)+'"></div>'+Object.entries(defs).map(([k,d])=>'<div class="budget-group" data-group="'+k+'"><div class="budget-head"><button type="button" class="budget-toggle">＋</button><div class="budget-title"><b>'+d.name+'</b></div><div class="budget-total">'+money(total(k))+'</div></div><div class="budget-children">'+(s.subcategories[k]||[]).map((x,i)=>'<div class="subrow"><input class="subname" data-k="'+k+'" data-i="'+i+'" value="'+String(x[0]).replace(/"/g,'&quot;')+'"><input class="subamt" data-k="'+k+'" data-i="'+i+'" type="number" inputmode="numeric" min="0" value="'+(Number(x[1])||0)+'"><button type="button" class="del" data-k="'+k+'" data-i="'+i+'">×</button></div>').join('')+'<button type="button" class="add" data-k="'+k+'">＋ 新增子分類</button></div></div>').join('');
- incomeInput.oninput=()=>{s.income=Number(incomeInput.value)||0;persist();calc()};bindBudget();
+ document.getElementById('budgetRows').innerHTML='<div class="row"><b>可分配月收入</b><input id="incomeInput" type="number" inputmode="numeric" value="'+(s.income||0)+'"></div>'+Object.entries(defs).map(([k,d])=>'<div class="budget-group" data-group="'+k+'"><div class="budget-head"><button type="button" class="budget-toggle">＋</button><div class="budget-title"><b>'+d.name+'</b></div><div class="budget-total">'+money(total(k))+'</div></div><div class="budget-children">'+(s.subcategories[k]||[]).map((x,i)=>'<div class="subrow"><input class="subname" data-k="'+k+'" data-i="'+i+'" value="'+String(x[0]).replace(/"/g,'&quot;')+'"><input class="subamt" data-k="'+k+'" data-i="'+i+'" type="number" inputmode="numeric" min="0" value="'+(Number(x[1])||0)+'"><button type="button" class="del" data-k="'+k+'" data-i="'+i+'">×</button></div>').join('')+'<button type="button" class="add" data-k="'+k+'">＋ 新增子分類</button></div></div>').join('');
+ document.getElementById('incomeInput').oninput=()=>{s.income=Number(document.getElementById('incomeInput').value)||0;persist();calc()};bindBudget();
 }
 function render(){
  renderBudget();calc();
- planRows.innerHTML='<details><summary>必要生活＋固定支出</summary><div class="box">先確保住房、教育、交通與基本生活。</div></details><details><summary>緊急預備金</summary><div class="box">先建立 4 個月，再往 6 個月。</div></details>';
- travelGoal.value=s.travelGoal;travelNow.value=s.travelNow;travelMonthly.value=s.travelMonthly;
- const rem=Math.max(0,s.travelGoal-s.travelNow),m=Math.max(1,Math.ceil(rem/Math.max(1,s.travelMonthly)));travelNeed.textContent='照目前速度約 '+m+' 個月達標';travelBar.style.width=(s.travelGoal?Math.min(100,s.travelNow/s.travelGoal*100):0)+'%';
- esppPct.value=s.esppPct;
- questRows.innerHTML=['沒有新增高利消費債','旅遊基金完成投入','緊急預備金完成投入','ESPP 符合現金流','完成月底 Review'].map((q,i)=>'<label class="quest"><input data-q="'+i+'" type="checkbox" '+(s.quests[i]?'checked':'')+'><span>'+q+'</span></label>').join('');
- const xp=s.quests.filter(Boolean).length*20;document.getElementById('xp').textContent=xp;level.textContent=xp>=80?'Gold':xp>=40?'Silver':'Bronze';
+ document.getElementById('planRows').innerHTML='<details><summary>必要生活＋固定支出</summary><div class="box">先確保住房、教育、交通與基本生活。</div></details><details><summary>緊急預備金</summary><div class="box">先建立 4 個月，再往 6 個月。</div></details>';
+ document.getElementById('travelGoal').value=s.travelGoal;document.getElementById('travelNow').value=s.travelNow;document.getElementById('travelMonthly').value=s.travelMonthly;
+ const rem=Math.max(0,s.travelGoal-s.travelNow),m=Math.max(1,Math.ceil(rem/Math.max(1,s.travelMonthly)));document.getElementById('travelNeed').textContent='照目前速度約 '+m+' 個月達標';document.getElementById('travelBar').style.width=(s.travelGoal?Math.min(100,s.travelNow/s.travelGoal*100):0)+'%';
+ document.getElementById('esppPct').value=s.esppPct;
+ document.getElementById('questRows').innerHTML=['沒有新增高利消費債','旅遊基金完成投入','緊急預備金完成投入','ESPP 符合現金流','完成月底 Review'].map((q,i)=>'<label class="quest"><input data-q="'+i+'" type="checkbox" '+(s.quests[i]?'checked':'')+'><span>'+q+'</span></label>').join('');
+ const xp=s.quests.filter(Boolean).length*20;document.getElementById('xp').textContent=xp;document.getElementById('level').textContent=xp>=80?'Gold':xp>=40?'Silver':'Bronze';
  document.querySelectorAll('[data-q]').forEach(e=>e.onchange=()=>{s.quests[+e.dataset.q]=e.checked;persist();render()});
 }
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById(b.dataset.p).classList.add('on')});
-['travelGoal','travelNow','travelMonthly','esppPct'].forEach(id=>document.getElementById(id).oninput=e=>{s[id]=Number(e.target.value)||0;persist();if(id==='esppPct')calc()});
-render();
+function bindTabs(){document.querySelectorAll('.tabs button').forEach(b=>{b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));b.classList.add('on');const p=document.getElementById(b.dataset.p);if(p)p.classList.add('on')}})}
+bindTabs();
+['travelGoal','travelNow','travelMonthly','esppPct'].forEach(id=>{const el=document.getElementById(id);if(el)el.oninput=e=>{s[id]=Number(e.target.value)||0;persist();if(id==='esppPct')calc()}});
+try{render();document.documentElement.dataset.appReady='1'}catch(err){console.error(err);const n=document.createElement('div');n.style.cssText='margin:12px;padding:12px;border-radius:10px;background:#fff1f0;color:#8a1c1c;font:14px system-ui';n.textContent='介面初始化失敗：'+err.message;document.body.prepend(n)}
 </script></body></html>
