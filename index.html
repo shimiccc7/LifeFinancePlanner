@@ -1,27 +1,114 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>家庭財務作戰板</title><style>:root{--b:#f5f7fb;--c:#fff;--i:#172033;--m:#6d7485;--a:#5266d9;--l:#e6e9f2;--g:#158266}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--i);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}.w{max-width:1080px;margin:auto;padding:14px}.hero{background:linear-gradient(135deg,#202a44,#5266d9);color:#fff;padding:24px;border-radius:22px}.hero h1{margin:0;font-size:clamp(28px,5vw,42px)}.hero p{opacity:.85}.tabs{display:flex;gap:8px;margin:14px 0;overflow:auto}.tabs button,button{border:0;border-radius:10px;padding:10px 13px;background:#e9ecf5;color:#273047;font-weight:700}.tabs .on{background:#273047;color:#fff}.page{display:none}.page.on{display:grid}.grid{grid-template-columns:repeat(12,1fr);gap:13px}.card{grid-column:span 4;background:var(--c);border:1px solid var(--l);border-radius:17px;padding:17px}.wide{grid-column:span 8}.full{grid-column:1/-1}.k{font-size:29px;font-weight:900}.muted{color:var(--m);font-size:13px}.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--l)}input{width:145px;padding:9px;border:1px solid var(--l);border-radius:9px;text-align:right;font-size:16px}.bar{height:12px;background:#eef0f5;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--a)}.tag{background:#eef0ff;color:#4253bf;border-radius:99px;padding:4px 8px;font-size:12px}.note{background:#fff7e4;padding:11px;border-radius:11px;color:#755000;font-size:13px}details{margin-top:8px}summary{cursor:pointer;font-weight:700}.quest{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--l)}.quest input{width:auto}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{background:#f4f6ff;padding:12px;border-radius:12px}.good{color:var(--g)}@media(max-width:760px){.card,.wide{grid-column:1/-1}.split{grid-template-columns:1fr}input{width:120px}}</style></head><body><div class="w"><section class="hero"><div class="tag">Prototype v0.1</div><h1>家庭財務作戰板</h1><p>把每月現金流、ESPP、旅遊基金與長期目標放在同一個可持續的系統裡。</p></section><nav class="tabs"><button class="on" data-p="dash">總覽</button><button data-p="budget">每月預算</button><button data-p="plan">建議分配</button><button data-p="travel">旅遊基金</button><button data-p="espp">ESPP</button><button data-p="quests">任務</button></nav><main><section id="dash" class="page on grid"><div class="card"><div class="muted">月收入</div><div class="k" id="incomeK"></div></div><div class="card"><div class="muted">每月配置</div><div class="k" id="spentK"></div></div><div class="card"><div class="muted">可用餘額</div><div class="k good" id="leftK"></div></div><div class="card wide"><h3>現金流安全度</h3><div class="bar"><i id="safeBar"></i></div><p class="muted" id="safeTxt"></p></div><div class="card"><h3>本月等級</h3><div class="k" id="level">Bronze</div><div class="muted"><span id="xp">0</span> XP</div></div><div class="card full note">本工具是規劃 Prototype，不取代稅務、投資或債務專業建議。真實金額只儲存在你的瀏覽器 localStorage，不上傳到 GitHub。</div></section><section id="budget" class="page grid"><div class="card full"><h2>每月真實預算</h2><p class="muted">右側直接輸入實際金額，總覽即時重算。</p><div id="budgetRows"></div></div></section><section id="plan" class="page grid"><div class="card full"><h2>建議分配</h2><div id="planRows"></div></div></section><section id="travel" class="page grid"><div class="card wide"><h2>年度旅遊基金</h2><div class="row"><span>年度目標</span><input id="travelGoal" type="number"></div><div class="row"><span>目前累積</span><input id="travelNow" type="number"></div><div class="row"><span>每月固定投入</span><input id="travelMonthly" type="number"></div><h3 id="travelNeed"></h3><div class="bar"><i id="travelBar"></i></div></div><div class="card"><h3>規則</h3><p>旅遊是可預期支出，使用 sinking fund，不從緊急預備金支付。</p><p class="muted">沒花完直接 rollover 到下一年度。</p></div></section><section id="espp" class="page grid"><div class="card wide"><h2>ESPP 階梯</h2><div class="row"><span>目前提撥比例</span><input id="esppPct" type="number" min="0" max="15">%</div><div id="esppCalc" class="k"></div><div class="note">建議先確認現金流、旅遊基金與緊急預備金，再由 8% → 10% → 12% → 15%。ESPP 取得後與 RSU 分開管理，避免公司股票曝險持續堆高。</div></div><div class="card"><h3>升級條件</h3><p>8–10%：預備金不足</p><p>10–12%：現金流穩定</p><p>15%：預備金 ≥ 4 個月且無需借貸支應生活</p></div></section><section id="quests" class="page grid"><div class="card full"><h2>本月任務</h2><div id="questRows"></div></div></section></main></div><script>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>家庭財務作戰板</title><style>:root{--b:#f5f7fb;--c:#fff;--i:#172033;--m:#6d7485;--a:#5266d9;--l:#e6e9f2;--g:#158266}*{box-sizing:border-box}body{margin:0;background:var(--b);color:var(--i);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}.w{max-width:1080px;margin:auto;padding:14px}.hero{background:linear-gradient(135deg,#202a44,#5266d9);color:#fff;padding:24px;border-radius:22px}.hero h1{margin:0;font-size:clamp(28px,5vw,42px)}.hero p{opacity:.85}.tabs{display:flex;gap:8px;margin:14px 0;overflow:auto}.tabs button,button{border:0;border-radius:10px;padding:10px 13px;background:#e9ecf5;color:#273047;font-weight:700}.tabs .on{background:#273047;color:#fff}.page{display:none}.page.on{display:grid}.grid{grid-template-columns:repeat(12,1fr);gap:13px}.card{grid-column:span 4;background:var(--c);border:1px solid var(--l);border-radius:17px;padding:17px}.wide{grid-column:span 8}.full{grid-column:1/-1}.k{font-size:29px;font-weight:900}.muted{color:var(--m);font-size:13px}.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--l)}input{width:145px;padding:9px;border:1px solid var(--l);border-radius:9px;text-align:right;font-size:16px}.bar{height:12px;background:#eef0f5;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--a)}.tag{background:#eef0ff;color:#4253bf;border-radius:99px;padding:4px 8px;font-size:12px}.note{background:#fff7e4;padding:11px;border-radius:11px;color:#755000;font-size:13px}details{margin-top:8px}summary{cursor:pointer;font-weight:700}.quest{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--l)}.quest input{width:auto}.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{background:#f4f6ff;padding:12px;border-radius:12px}.good{color:var(--g)}.budget-group{border-bottom:1px solid var(--l)}.budget-head{display:flex;align-items:center;gap:10px;padding:10px 0}.budget-toggle{width:44px;height:44px;padding:0;background:#f2f4f9;font-size:18px}.budget-title{flex:1;min-width:0}.budget-total{font-weight:900;font-size:18px;white-space:nowrap}.budget-children{display:none;padding:0 0 12px 54px}.budget-group.open .budget-children{display:block}.subrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 110px 44px;gap:8px;align-items:center;padding:6px 0}.subrow input[type=text]{width:100%;text-align:left}.subrow input[type=number]{width:100%}.subrow select{width:100%;padding:9px 5px;border:1px solid var(--l);border-radius:9px;background:#fff;font-size:14px}.iconbtn{width:44px;height:44px;padding:0}.addsub{margin-top:8px}.budget-hint{color:var(--m);font-size:12px}.budget-head input{display:none}@media(max-width:760px){.subrow{grid-template-columns:minmax(0,1fr) 82px 100px 44px}.card,.wide{grid-column:1/-1}.split{grid-template-columns:1fr}input{width:120px}}</style></head><body><div class="w"><section class="hero"><div class="tag">Prototype v0.2 · Behavioral UX</div><h1>家庭財務作戰板</h1><p>每次打開只做下一個最值得做的財務行動。少一點焦慮，多一點可見進度。</p></section><nav class="tabs"><button class="on" data-p="dash">首頁</button><button data-p="budget">計畫</button><button data-p="travel">目標</button><button data-p="quests">我的</button></nav><main><section id="dash" class="page on grid"><div class="card full" id="nextAction"><span class="tag">今日任務 · 約 1 分鐘</span><h2 id="nextTitle">建立你的財務基地</h2><p id="nextDesc" class="muted">先輸入月收入，系統才能計算本月安全配置。</p><button id="nextBtn">開始設定 →</button></div><div class="card"><div class="muted">月收入</div><div class="k" id="incomeK"></div></div><div class="card"><div class="muted">每月配置</div><div class="k" id="spentK"></div></div><div class="card"><div class="muted">可用餘額</div><div class="k good" id="leftK"></div></div><div class="card"><div class="muted">最低生存成本／月</div><div class="k" id="survivalK">NT$0</div></div><div class="card"><div class="muted">4個月安全網目標</div><div class="k" id="ef4K">NT$0</div></div><div class="card wide"><h3>現金流安全度</h3><div class="bar"><i id="safeBar"></i></div><p class="muted" id="safeTxt"></p></div><div class="card"><h3>財務旅程</h3><div class="k" id="level">建立基地</div><div class="muted"><span id="xp">0</span>% 本月計畫完成</div></div><div class="card full note">本工具是規劃 Prototype，不取代稅務、投資或債務專業建議。真實金額只儲存在你的瀏覽器 localStorage，不上傳到 GitHub。</div></section><section id="budget" class="page grid"><div class="card full"><h2>每月真實預算</h2><p class="muted">右側直接輸入實際金額，總覽即時重算。</p><div id="budgetRows"></div></div><div class="card full"><h2>Smart Allocation</h2><p class="muted">先完成必要支出，再把「本月可分配」分給真正重要的目標。調整任何欄位，下方未來影響會立即更新。</p><div class="split"><div class="box"><div class="row"><span>✈️ 旅行</span><input id="allocTravel" type="number" value="0"></div><div class="row"><span>🛡️ 安全網</span><input id="allocEmergency" type="number" value="0"></div><div class="row"><span>📈 長期投資</span><input id="allocInvest" type="number" value="0"></div><div class="row"><span>☕ 自由使用</span><input id="allocFree" type="number" value="0"></div></div><div class="box"><div class="muted">本月可分配</div><div class="k" id="allocAvailable">NT$0</div><div class="muted">尚未分配</div><div class="k" id="allocLeft">NT$0</div><button id="autoAlloc">產生建議配置</button></div></div><div id="allocImpact" class="note" style="margin-top:12px"></div></div></section><section id="plan" class="page grid"><div class="card full"><h2>建議分配</h2><div id="planRows"></div></div></section><section id="travel" class="page grid"><div class="card full"><h2>Future Me · 12 個月後</h2><div class="split"><div class="box"><div class="muted">旅遊基金增加</div><div class="k" id="futureTravel">NT$0</div></div><div class="box"><div class="muted">安全網增加</div><div class="k" id="futureEmergency">NT$0</div></div><div class="box"><div class="muted">長期投資投入</div><div class="k" id="futureInvest">NT$0</div></div><div class="box"><div class="muted">一年可自由使用</div><div class="k" id="futureFree">NT$0</div></div></div><p class="muted">這是依目前每月配置做的簡單投射，不包含投資報酬率、通膨或額外收入。</p></div><div class="card wide"><h2>年度旅遊基金</h2><div class="row"><span>年度目標</span><input id="travelGoal" type="number"></div><div class="row"><span>目前累積</span><input id="travelNow" type="number"></div><div class="row"><span>每月固定投入</span><input id="travelMonthly" type="number"></div><h3 id="travelNeed"></h3><div class="bar"><i id="travelBar"></i></div></div><div class="card"><h3>規則</h3><p>旅遊是可預期支出，使用 sinking fund，不從緊急預備金支付。</p><p class="muted">沒花完直接 rollover 到下一年度。</p></div></section><section id="espp" class="page grid"><div class="card wide"><h2>ESPP 階梯</h2><div class="row"><span>目前提撥比例</span><input id="esppPct" type="number" min="0" max="15">%</div><div id="esppCalc" class="k"></div><div class="note">建議先確認現金流、旅遊基金與緊急預備金，再由 8% → 10% → 12% → 15%。ESPP 取得後與 RSU 分開管理，避免公司股票曝險持續堆高。</div></div><div class="card"><h3>升級條件</h3><p>8–10%：預備金不足</p><p>10–12%：現金流穩定</p><p>15%：預備金 ≥ 4 個月且無需借貸支應生活</p></div></section><section id="quests" class="page grid"><div class="card full"><h2>本月任務</h2><div id="questRows"></div></div></section></main></div><script>
 const defaults={income:0,mortgage:0,education:0,transport:0,loans:0,living:0,insurance:0,travel:0,emergency:0,invest:0,other:0,travelGoal:0,travelNow:0,travelMonthly:0,esppPct:0,quests:[false,false,false,false,false]};
-let s=Object.assign({},defaults,JSON.parse(localStorage.getItem('lfp')||'{}'));
+let s=Object.assign({},defaults,{allocTravel:0,allocEmergency:0,allocInvest:0,allocFree:0},JSON.parse(localStorage.getItem('lfp')||'{}'));
 const money=n=>'NT$'+Math.round(n).toLocaleString('zh-TW');
 const items=[['mortgage','房貸／住房','輸入每月住房／房貸實際金額'],['education','子女教育／課程','輸入教育與課程實際金額'],['transport','交通／校車','輸入交通實際金額'],['loans','其他貸款','請輸入真實月付'],['living','生活費','餐飲、日用品、水電'],['insurance','保險／醫療','請輸入平均月額'],['travel','年度旅遊基金','依你的年度旅遊目標自動規劃'],['emergency','緊急預備金','未達 4–6 個月前優先'],['invest','非 AMD 長期投資','用來降低集中風險'],['other','彈性／大型支出','器材、課程、臨時支出']];
+const defaultSubs={
+ mortgage:[['房貸',0],['管理費',0],['水電／瓦斯',0]],
+ education:[
+ ['學校／學雜費',0],
+ ['英文｜以馬內利美語',0],
+ ['小提琴｜星晴',0],
+ ['籃球 A2',0],
+ ['游泳｜FSIMG 鯊魚團練',0],
+ ['游泳｜個別課',0],
+ ['數學／家教',0],
+ ['鋼琴｜鈞鈞',0],
+ ['圍棋',0],
+ ['MTB 單車',0],
+ ['小鐵人',0],
+ ['芭蕾',0],
+ ['水球',0],
+ ['水舞／美人魚',0],
+ ['教材／書籍／學習 App',0],
+ ['比賽／報名／活動費',0]
+],
+ transport:[['校車／大眾運輸',0],['油資／停車',0],['計程車',0]],
+ loans:[['中信信貸',0],['聯邦信貸',0],['LINE Bank 信貸',0],['信用卡分期／其他貸款',0]],
+ living:[['餐飲',0],['日用品',0],['電信／網路',0]],
+ insurance:[['保險',0],['醫療／藥品',0]],
+ travel:[['機票／交通',0],['住宿',0],['活動／當地支出',0]],
+ emergency:[['緊急預備金',0]],
+ invest:[['ETF／基金',0],['其他長期投資',0]],
+ other:[['課程／器材',0],['臨時支出',0]]
+};
+if(!s.subcategories)s.subcategories=JSON.parse(JSON.stringify(defaultSubs));
+if(!s.subtypes)s.subtypes={};
+for(const [k] of items){if(!Array.isArray(s.subcategories[k]))s.subcategories[k]=JSON.parse(JSON.stringify(defaultSubs[k]||[]));const subtotal=s.subcategories[k].reduce((a,x)=>a+(+x[1]||0),0);if(subtotal===0 && (+s[k]||0)>0 && s.subcategories[k].length)s.subcategories[k][0][1]=+s[k];}
 const plan=[['必要生活＋固定支出','45–55%','先確保住房、教育、交通、基本生活'],['緊急預備金','5–10%','先建立 4 個月，再往 6 個月'],['年度旅遊基金','8–10%','設定年度目標後換算每月投入'],['AMD ESPP','10–12%','依現金流安全度決定，不必直接拉滿'],['非 AMD 長期投資','10–15%','降低薪資、RSU、ESPP 同公司集中'],['彈性支出','剩餘','只有在前面目標完成後使用']];
 const qs=['本月沒有新增循環信用／高利消費債','旅遊基金完成本月固定投入','緊急預備金完成本月投入','ESPP 比例符合目前現金流能力','完成一次月底財務 Review'];
-function save(){localStorage.setItem('lfp',JSON.stringify(s));render()}
+function persist(){localStorage.setItem('lfp',JSON.stringify(s))}
+function save(){persist();render()}
+function updateLive(){
+ const espp=s.income*s.esppPct/100;
+ const spent=items.reduce((a,[k])=>a+(+s[k]||0),0)+espp;
+ incomeK.textContent=money(s.income);spentK.textContent=money(spent);leftK.textContent=money(s.income-spent);
+ const ratio=s.income>0?Math.max(0,Math.min(100,(s.income-spent)/s.income*100)):0;
+ safeBar.style.width=ratio+'%';safeTxt.textContent='月收入扣除規劃後保留 '+ratio.toFixed(1)+'% 現金彈性';
+ const essentialKeys=['mortgage','education','transport','loans','living','insurance','other'];
+ const essential=essentialKeys.reduce((a,k)=>a+(+s[k]||0),0);
+ const available=Math.max(0,s.income-essential-(s.income*s.esppPct/100));
+ const allocTotal=(+s.allocTravel||0)+(+s.allocEmergency||0)+(+s.allocInvest||0)+(+s.allocFree||0);
+ if(document.getElementById('allocAvailable')){
+  allocAvailable.textContent=money(available);allocLeft.textContent=money(available-allocTotal);
+  allocLeft.className='k '+(available-allocTotal<0?'':'good');
+  allocImpact.innerHTML='照目前配置：旅行每年 +<b>'+money(s.allocTravel*12)+'</b>；安全網 +<b>'+money(s.allocEmergency*12)+'</b>；長期投資本金 +<b>'+money(s.allocInvest*12)+'</b>。'+(available-allocTotal<0?' <b>目前超出可分配額，請降低配置。</b>':'');
+ }
+ if(document.getElementById('futureTravel')){futureTravel.textContent=money(s.allocTravel*12);futureEmergency.textContent=money(s.allocEmergency*12);futureInvest.textContent=money(s.allocInvest*12);futureFree.textContent=money(s.allocFree*12);}
+ let survival=0;
+ for(const [k] of items){(s.subcategories[k]||[]).forEach((x,i)=>{const t=s.subtypes[k+'-'+i]||((k==='mortgage'||k==='loans'||k==='insurance')?'fixed':'variable');if(t==='fixed')survival+=+x[1]||0;});}
+ if(document.getElementById('survivalK'))survivalK.textContent=money(survival);
+ if(document.getElementById('ef4K'))ef4K.textContent=money(survival*4);
+ if(document.getElementById('esppCalc'))esppCalc.textContent=money(espp)+' / 月';
+ return available;
+}
 function render(){
  incomeK.textContent=money(s.income);
  const espp=s.income*s.esppPct/100;
  const spent=items.reduce((a,[k])=>a+(+s[k]||0),0)+espp;
  spentK.textContent=money(spent);leftK.textContent=money(s.income-spent);
  const ratio=s.income>0?Math.max(0,Math.min(100,(s.income-spent)/s.income*100)):0;safeBar.style.width=ratio+'%';safeTxt.textContent='月收入扣除規劃後保留 '+ratio.toFixed(1)+'% 現金彈性';
- budgetRows.innerHTML='<div class="row"><b>可分配月收入</b><input data-k="income" type="number" value="'+s.income+'"></div>'+items.map(([k,n,h])=>'<div class="row"><span><b>'+n+'</b><br><span class="muted">'+h+'</span></span><input data-k="'+k+'" type="number" value="'+s[k]+'"></div>').join('');
+ budgetRows.innerHTML='<div class="row"><b>可分配月收入</b><input data-k="income" type="number" value="'+s.income+'"></div>'+items.map(([k,n,h])=>{
+ const subs=s.subcategories[k]||[]; const total=subs.reduce((a,x)=>a+(+x[1]||0),0); s[k]=total;
+ return '<div class="budget-group" data-group="'+k+'"><div class="budget-head"><button type="button" class="budget-toggle" aria-label="展開或收合 '+n+'">＋</button><div class="budget-title"><b>'+n+'</b><div class="budget-hint">'+h+'</div></div><div class="budget-total">'+money(total)+'</div></div><div class="budget-children">'+subs.map((x,i)=>'<div class="subrow"><input class="subname" data-cat="'+k+'" data-i="'+i+'" type="text" value="'+String(x[0]).replace(/"/g,'&quot;')+'" aria-label="子分類名稱"><select class="subtype" data-cat="'+k+'" data-i="'+i+'" aria-label="支出類型"><option value="fixed" '+((s.subtypes[k+"-"+i]||((k==="mortgage"||k==="loans"||k==="insurance")?"fixed":"variable"))==="fixed"?"selected":"")+'>固定</option><option value="variable" '+((s.subtypes[k+"-"+i]||((k==="mortgage"||k==="loans"||k==="insurance")?"fixed":"variable"))==="variable"?"selected":"")+'>浮動</option><option value="annual" '+((s.subtypes[k+"-"+i]||"")==="annual"?"selected":"")+'>年度</option></select><input class="subamt" data-cat="'+k+'" data-i="'+i+'" type="number" min="0" inputmode="numeric" value="'+(+x[1]||0)+'" aria-label="'+x[0]+'金額"><button type="button" class="iconbtn delsub" data-cat="'+k+'" data-i="'+i+'" aria-label="刪除 '+x[0]+'">×</button></div>').join('')+'<button type="button" class="addsub" data-cat="'+k+'">＋ 新增子分類</button></div></div>';
+ }).join('');
  planRows.innerHTML=plan.map(([n,p,h])=>'<details><summary>'+n+' <span class="tag">'+p+'</span></summary><div class="box">'+h+'</div></details>').join('');
  travelGoal.value=s.travelGoal;travelNow.value=s.travelNow;travelMonthly.value=s.travelMonthly;const remain=Math.max(0,s.travelGoal-s.travelNow),months=Math.max(1,Math.ceil(remain/Math.max(1,s.travelMonthly)));travelNeed.textContent='照目前速度約 '+months+' 個月達標';travelBar.style.width=(s.travelGoal>0?Math.min(100,s.travelNow/s.travelGoal*100):0)+'%';
  esppPct.value=s.esppPct;esppCalc.textContent=money(espp)+' / 月';
  questRows.innerHTML=qs.map((q,i)=>'<label class="quest"><input data-q="'+i+'" type="checkbox" '+(s.quests[i]?'checked':'')+'><span>'+q+'</span></label>').join('');
- const xp=s.quests.filter(Boolean).length*20;document.getElementById('xp').textContent=xp;level.textContent=xp>=100?'Diamond':xp>=80?'Gold':xp>=40?'Silver':'Bronze';
- document.querySelectorAll('[data-k]').forEach(e=>e.oninput=()=>{s[e.dataset.k]=+e.value;save()});
+ const essentialKeys=['mortgage','education','transport','loans','living','insurance','other'];
+ const essential=essentialKeys.reduce((a,k)=>a+(+s[k]||0),0);
+ const available=Math.max(0,s.income-essential-(s.income*s.esppPct/100));
+ const allocTotal=(+s.allocTravel||0)+(+s.allocEmergency||0)+(+s.allocInvest||0)+(+s.allocFree||0);
+ if(document.getElementById('allocAvailable')){
+   allocAvailable.textContent=money(available);
+   allocLeft.textContent=money(available-allocTotal);
+   allocLeft.className='k '+(available-allocTotal<0?'':'good');
+   allocTravel.value=s.allocTravel;allocEmergency.value=s.allocEmergency;allocInvest.value=s.allocInvest;allocFree.value=s.allocFree;
+   allocImpact.innerHTML='照目前配置：旅行每年 +<b>'+money(s.allocTravel*12)+'</b>；安全網 +<b>'+money(s.allocEmergency*12)+'</b>；長期投資本金 +<b>'+money(s.allocInvest*12)+'</b>。'+(available-allocTotal<0?' <b>目前超出可分配額，請降低配置。</b>':'');
+ }
+ if(document.getElementById('futureTravel')){futureTravel.textContent=money(s.allocTravel*12);futureEmergency.textContent=money(s.allocEmergency*12);futureInvest.textContent=money(s.allocInvest*12);futureFree.textContent=money(s.allocFree*12);}
+ const xp=s.quests.filter(Boolean).length*20;document.getElementById('xp').textContent=xp;level.textContent=xp>=100?'財務自動化':xp>=80?'資產成長':xp>=40?'建立安全網':'建立基地';document.getElementById('xp').textContent=xp;
+ document.querySelectorAll('[data-k]').forEach(e=>e.oninput=()=>{s[e.dataset.k]=+e.value;persist();updateLive()});
+ document.querySelectorAll('.budget-toggle').forEach(e=>e.onclick=()=>{const g=e.closest('.budget-group');g.classList.toggle('open');e.textContent=g.classList.contains('open')?'−':'＋'});
+ document.querySelectorAll('.subamt').forEach(e=>e.oninput=()=>{const k=e.dataset.cat,i=+e.dataset.i;s.subcategories[k][i][1]=Math.max(0,+e.value||0);s[k]=s.subcategories[k].reduce((a,x)=>a+(+x[1]||0),0);e.closest('.budget-group').querySelector('.budget-total').textContent=money(s[k]);persist();updateLive()});
+ document.querySelectorAll('.subname').forEach(e=>e.onchange=()=>{s.subcategories[e.dataset.cat][+e.dataset.i][0]=e.value.trim()||'未命名';persist()});
+ document.querySelectorAll('.subtype').forEach(e=>e.onchange=()=>{s.subtypes[e.dataset.cat+'-'+e.dataset.i]=e.value;persist();updateLive()});
+ document.querySelectorAll('.delsub').forEach(e=>e.onclick=()=>{const k=e.dataset.cat,i=+e.dataset.i;s.subcategories[k].splice(i,1);persist();render();setTimeout(()=>{const g=document.querySelector('[data-group="'+k+'"]');g?.classList.add('open');const b=g?.querySelector('.budget-toggle');if(b)b.textContent='−'},0)});
+ document.querySelectorAll('.addsub').forEach(e=>e.onclick=()=>{const k=e.dataset.cat;s.subcategories[k].push(['新項目',0]);persist();render();setTimeout(()=>{const g=document.querySelector('[data-group="'+k+'"]');g?.classList.add('open');const b=g?.querySelector('.budget-toggle');if(b)b.textContent='−';const ins=g?.querySelectorAll('.subname');ins?.[ins.length-1]?.focus()},0)});
  document.querySelectorAll('[data-q]').forEach(e=>e.onchange=()=>{s.quests[+e.dataset.q]=e.checked;save()});
+ ['allocTravel','allocEmergency','allocInvest','allocFree'].forEach(id=>{const e=document.getElementById(id);if(e)e.oninput=()=>{s[id]=+e.value;persist();updateLive()}});
+ const aa=document.getElementById('autoAlloc');if(aa)aa.onclick=()=>{const base=Math.max(0,available);s.allocTravel=Math.round(base*.25);s.allocEmergency=Math.round(base*.30);s.allocInvest=Math.round(base*.30);s.allocFree=base-s.allocTravel-s.allocEmergency-s.allocInvest;save()};
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById(b.dataset.p).classList.add('on')});
-['travelGoal','travelNow','travelMonthly','esppPct'].forEach(id=>document.getElementById(id).oninput=e=>{s[id]=+e.target.value;save()});
-render();
+['travelGoal','travelNow','travelMonthly','esppPct'].forEach(id=>document.getElementById(id).oninput=e=>{
+ s[id]=+e.target.value;persist();
+ if(id==='esppPct') updateLive();
+ if(id.startsWith('travel')){
+  const remain=Math.max(0,s.travelGoal-s.travelNow),months=Math.max(1,Math.ceil(remain/Math.max(1,s.travelMonthly)));
+  travelNeed.textContent='照目前速度約 '+months+' 個月達標';
+  travelBar.style.width=(s.travelGoal>0?Math.min(100,s.travelNow/s.travelGoal*100):0)+'%';
+ }
+});
+document.getElementById('nextBtn').onclick=()=>{document.querySelector('[data-p="budget"]').click();setTimeout(()=>document.querySelector('[data-k="income"]')?.focus(),50)};render();
 </script></body></html>
