@@ -5,7 +5,24 @@ const money=n=>'NT$'+Math.round(n).toLocaleString('zh-TW');
 const items=[['mortgage','房貸／住房','輸入每月住房／房貸實際金額'],['education','子女教育／課程','輸入教育與課程實際金額'],['transport','交通／校車','輸入交通實際金額'],['loans','其他貸款','請輸入真實月付'],['living','生活費','餐飲、日用品、水電'],['insurance','保險／醫療','請輸入平均月額'],['travel','年度旅遊基金','依你的年度旅遊目標自動規劃'],['emergency','緊急預備金','未達 4–6 個月前優先'],['invest','非 AMD 長期投資','用來降低集中風險'],['other','彈性／大型支出','器材、課程、臨時支出']];
 const defaultSubs={
  mortgage:[['房貸',0],['管理費',0],['水電／瓦斯',0]],
- education:[['學費／安親',0],['才藝／運動課程',0],['教材／用品',0]],
+ education:[
+ ['學校／學雜費',0],
+ ['英文｜以馬內利美語',0],
+ ['小提琴｜星晴',0],
+ ['籃球 A2',0],
+ ['游泳｜FSIMG 鯊魚團練',0],
+ ['游泳｜個別課',0],
+ ['數學／家教',0],
+ ['鋼琴｜鈞鈞',0],
+ ['圍棋',0],
+ ['MTB 單車',0],
+ ['小鐵人',0],
+ ['芭蕾',0],
+ ['水球',0],
+ ['水舞／美人魚',0],
+ ['教材／書籍／學習 App',0],
+ ['比賽／報名／活動費',0]
+],
  transport:[['校車／大眾運輸',0],['油資／停車',0],['計程車',0]],
  loans:[['信貸',0],['信用卡分期',0]],
  living:[['餐飲',0],['日用品',0],['電信／網路',0]],
@@ -53,7 +70,7 @@ function render(){
  const ratio=s.income>0?Math.max(0,Math.min(100,(s.income-spent)/s.income*100)):0;safeBar.style.width=ratio+'%';safeTxt.textContent='月收入扣除規劃後保留 '+ratio.toFixed(1)+'% 現金彈性';
  budgetRows.innerHTML='<div class="row"><b>可分配月收入</b><input data-k="income" type="number" value="'+s.income+'"></div>'+items.map(([k,n,h])=>{
  const subs=s.subcategories[k]||[]; const total=subs.reduce((a,x)=>a+(+x[1]||0),0); s[k]=total;
- return '<div class="budget-group" data-group="'+k+'"><div class="budget-head"><button type="button" class="budget-toggle" aria-label="展開 '+n+'">⌄</button><div class="budget-title"><b>'+n+'</b><div class="budget-hint">'+h+'</div></div><div class="budget-total">'+money(total)+'</div></div><div class="budget-children">'+subs.map((x,i)=>'<div class="subrow"><input class="subname" data-cat="'+k+'" data-i="'+i+'" type="text" value="'+String(x[0]).replace(/"/g,'&quot;')+'" aria-label="子分類名稱"><select class="subtype" data-cat="'+k+'" data-i="'+i+'" aria-label="支出類型"><option value="fixed" '+((s.subtypes[k+"-"+i]||((k==="mortgage"||k==="loans"||k==="insurance")?"fixed":"variable"))==="fixed"?"selected":"")+'>固定</option><option value="variable" '+((s.subtypes[k+"-"+i]||((k==="mortgage"||k==="loans"||k==="insurance")?"fixed":"variable"))==="variable"?"selected":"")+'>浮動</option><option value="annual" '+((s.subtypes[k+"-"+i]||"")==="annual"?"selected":"")+'>年度</option></select><input class="subamt" data-cat="'+k+'" data-i="'+i+'" type="number" min="0" inputmode="numeric" value="'+(+x[1]||0)+'" aria-label="'+x[0]+'金額"><button type="button" class="iconbtn delsub" data-cat="'+k+'" data-i="'+i+'" aria-label="刪除 '+x[0]+'">×</button></div>').join('')+'<button type="button" class="addsub" data-cat="'+k+'">＋ 新增子分類</button></div></div>';
+ return '<div class="budget-group" data-group="'+k+'"><div class="budget-head"><button type="button" class="budget-toggle" aria-label="展開或收合 '+n+'">＋</button><div class="budget-title"><b>'+n+'</b><div class="budget-hint">'+h+'</div></div><div class="budget-total">'+money(total)+'</div></div><div class="budget-children">'+subs.map((x,i)=>'<div class="subrow"><input class="subname" data-cat="'+k+'" data-i="'+i+'" type="text" value="'+String(x[0]).replace(/"/g,'&quot;')+'" aria-label="子分類名稱"><select class="subtype" data-cat="'+k+'" data-i="'+i+'" aria-label="支出類型"><option value="fixed" '+((s.subtypes[k+"-"+i]||((k==="mortgage"||k==="loans"||k==="insurance")?"fixed":"variable"))==="fixed"?"selected":"")+'>固定</option><option value="variable" '+((s.subtypes[k+"-"+i]||((k==="mortgage"||k==="loans"||k==="insurance")?"fixed":"variable"))==="variable"?"selected":"")+'>浮動</option><option value="annual" '+((s.subtypes[k+"-"+i]||"")==="annual"?"selected":"")+'>年度</option></select><input class="subamt" data-cat="'+k+'" data-i="'+i+'" type="number" min="0" inputmode="numeric" value="'+(+x[1]||0)+'" aria-label="'+x[0]+'金額"><button type="button" class="iconbtn delsub" data-cat="'+k+'" data-i="'+i+'" aria-label="刪除 '+x[0]+'">×</button></div>').join('')+'<button type="button" class="addsub" data-cat="'+k+'">＋ 新增子分類</button></div></div>';
  }).join('');
  planRows.innerHTML=plan.map(([n,p,h])=>'<details><summary>'+n+' <span class="tag">'+p+'</span></summary><div class="box">'+h+'</div></details>').join('');
  travelGoal.value=s.travelGoal;travelNow.value=s.travelNow;travelMonthly.value=s.travelMonthly;const remain=Math.max(0,s.travelGoal-s.travelNow),months=Math.max(1,Math.ceil(remain/Math.max(1,s.travelMonthly)));travelNeed.textContent='照目前速度約 '+months+' 個月達標';travelBar.style.width=(s.travelGoal>0?Math.min(100,s.travelNow/s.travelGoal*100):0)+'%';
@@ -73,12 +90,12 @@ function render(){
  if(document.getElementById('futureTravel')){futureTravel.textContent=money(s.allocTravel*12);futureEmergency.textContent=money(s.allocEmergency*12);futureInvest.textContent=money(s.allocInvest*12);futureFree.textContent=money(s.allocFree*12);}
  const xp=s.quests.filter(Boolean).length*20;document.getElementById('xp').textContent=xp;level.textContent=xp>=100?'財務自動化':xp>=80?'資產成長':xp>=40?'建立安全網':'建立基地';document.getElementById('xp').textContent=xp;
  document.querySelectorAll('[data-k]').forEach(e=>e.oninput=()=>{s[e.dataset.k]=+e.value;persist();updateLive()});
- document.querySelectorAll('.budget-toggle').forEach(e=>e.onclick=()=>e.closest('.budget-group').classList.toggle('open'));
+ document.querySelectorAll('.budget-toggle').forEach(e=>e.onclick=()=>{const g=e.closest('.budget-group');g.classList.toggle('open');e.textContent=g.classList.contains('open')?'−':'＋'});
  document.querySelectorAll('.subamt').forEach(e=>e.oninput=()=>{const k=e.dataset.cat,i=+e.dataset.i;s.subcategories[k][i][1]=Math.max(0,+e.value||0);s[k]=s.subcategories[k].reduce((a,x)=>a+(+x[1]||0),0);e.closest('.budget-group').querySelector('.budget-total').textContent=money(s[k]);persist();updateLive()});
  document.querySelectorAll('.subname').forEach(e=>e.onchange=()=>{s.subcategories[e.dataset.cat][+e.dataset.i][0]=e.value.trim()||'未命名';persist()});
  document.querySelectorAll('.subtype').forEach(e=>e.onchange=()=>{s.subtypes[e.dataset.cat+'-'+e.dataset.i]=e.value;persist();updateLive()});
- document.querySelectorAll('.delsub').forEach(e=>e.onclick=()=>{const k=e.dataset.cat,i=+e.dataset.i;s.subcategories[k].splice(i,1);persist();render();setTimeout(()=>document.querySelector('[data-group="'+k+'"]')?.classList.add('open'),0)});
- document.querySelectorAll('.addsub').forEach(e=>e.onclick=()=>{const k=e.dataset.cat;s.subcategories[k].push(['新項目',0]);persist();render();setTimeout(()=>{const g=document.querySelector('[data-group="'+k+'"]');g?.classList.add('open');const ins=g?.querySelectorAll('.subname');ins?.[ins.length-1]?.focus()},0)});
+ document.querySelectorAll('.delsub').forEach(e=>e.onclick=()=>{const k=e.dataset.cat,i=+e.dataset.i;s.subcategories[k].splice(i,1);persist();render();setTimeout(()=>{const g=document.querySelector('[data-group="'+k+'"]');g?.classList.add('open');const b=g?.querySelector('.budget-toggle');if(b)b.textContent='−'},0)});
+ document.querySelectorAll('.addsub').forEach(e=>e.onclick=()=>{const k=e.dataset.cat;s.subcategories[k].push(['新項目',0]);persist();render();setTimeout(()=>{const g=document.querySelector('[data-group="'+k+'"]');g?.classList.add('open');const b=g?.querySelector('.budget-toggle');if(b)b.textContent='−';const ins=g?.querySelectorAll('.subname');ins?.[ins.length-1]?.focus()},0)});
  document.querySelectorAll('[data-q]').forEach(e=>e.onchange=()=>{s.quests[+e.dataset.q]=e.checked;save()});
  ['allocTravel','allocEmergency','allocInvest','allocFree'].forEach(id=>{const e=document.getElementById(id);if(e)e.oninput=()=>{s[id]=+e.value;persist();updateLive()}});
  const aa=document.getElementById('autoAlloc');if(aa)aa.onclick=()=>{const base=Math.max(0,available);s.allocTravel=Math.round(base*.25);s.allocEmergency=Math.round(base*.30);s.allocInvest=Math.round(base*.30);s.allocFree=base-s.allocTravel-s.allocEmergency-s.allocInvest;save()};
